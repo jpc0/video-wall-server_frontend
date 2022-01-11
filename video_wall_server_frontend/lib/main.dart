@@ -1,26 +1,39 @@
-import 'package:flutter/material.dart';
+import 'dart:collection';
+import 'dart:convert';
 
-void main() {
-  runApp(const MyApp());
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
+
+import 'server_bloc.dart';
+
+void main() async {
+  final videowallBlock = VideoWallBloc();
+  runApp(MyApp(bloc: videowallBlock));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
+  final VideoWallBloc? bloc;
+  MyApp({
+    Key? key,
+    this.bloc,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Video Wall Server',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Video Wall Server', bloc: bloc),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  final VideoWallBloc? bloc;
+
+  MyHomePage({Key? key, required this.title, this.bloc}) : super(key: key);
 
   final String title;
 
@@ -29,41 +42,68 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var images = ["image1.jpeg", "image2.jpeg", "image3.jpg", "image4.jpg"];
+  Future<void> uploadimage(String url, PlatformFile image) async {
+    var uploadurl = Uri.parse(url);
+    var request = http.MultipartRequest("POST", uploadurl);
+    request.files.add(http.MultipartFile.fromBytes(
+        "file", image.bytes!.toList(),
+        filename: image.name));
+    var response = await http.Response.fromStream(await request.send());
+    var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                children: images.map(_buildItem).toList(),
-              ),
-            ),
-            Container(
-              color: Colors.blueAccent,
-              height: 80,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        body: StreamBuilder<UnmodifiableListView<dynamic>>(
+          stream: widget.bloc?.images,
+          initialData: UnmodifiableListView<dynamic>([]),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Column(
                 children: [
-                  MaterialButton(
-                    color: Colors.white,
-                    onPressed: () => {},
-                    child: const Text("Upload"),
+                  Expanded(
+                    child: ListView(
+                      children: snapshot.data!.map(_buildItem).toList(),
+                    ),
+                  ),
+                  Container(
+                    color: Colors.blueAccent,
+                    height: 80,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        MaterialButton(
+                          color: Colors.white,
+                          onPressed: () async {
+                            FilePickerResult? result = await FilePicker.platform
+                                .pickFiles(type: FileType.image);
+
+                            if (result != null) {
+                              PlatformFile file = result.files.first;
+                              await uploadimage(
+                                  "http://127.0.0.1:5000/upload", file);
+                            }
+                          },
+                          child: const Text("Upload"),
+                        )
+                      ],
+                    ),
                   )
                 ],
-              ),
-            )
-          ],
+              );
+            }
+            return const CircularProgressIndicator();
+          },
         ));
   }
 
   Widget _buildItem(image) {
     return ExpansionTile(
-      title: Center(child: Text(image)),
+      title: Center(child: Text(image["file_path"])),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -77,7 +117,10 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Text("View"),
             ),
             MaterialButton(
-              onPressed: () => {},
+              onPressed: () async {
+                var response = await http.delete(
+                    Uri.parse("http://localhost:5000/delete/${image["id"]}"));
+              },
               child: const Text("Delete"),
             ),
           ],
