@@ -26,7 +26,7 @@ class VideoWallBloc {
   var _images = [];
 
   Future<Null> _getAllImages() async {
-    var response = await http.get(Uri.parse("/get_all"));
+    var response = await http.get(Uri.parse("api/get_all"));
     var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
     if (decodedResponse["message"] == "all_files") {
       _images = decodedResponse["content"];

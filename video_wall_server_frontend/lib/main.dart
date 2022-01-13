@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                             if (result != null) {
                               PlatformFile file = result.files.first;
-                              await uploadimage("/upload", file);
+                              await uploadimage("api/upload", file);
                               widget.bloc?.updateImages.add('');
                             }
                           },
@@ -110,8 +110,8 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             MaterialButton(
               onPressed: () async {
-                var request =
-                    http.Request("GET", Uri.parse("/display/${image["id"]}"));
+                var request = http.Request(
+                    "GET", Uri.parse("api/display/${image["id"]}"));
                 var response = await request.send();
                 widget.bloc?.updateImages.add('');
               },
@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
             MaterialButton(
               onPressed: () async {
                 var request =
-                    http.Request("GET", Uri.parse("/delete/${image["id"]}"));
+                    http.Request("GET", Uri.parse("api/delete/${image["id"]}"));
                 var response = await request.send();
                 widget.bloc?.updateImages.add('');
               },
