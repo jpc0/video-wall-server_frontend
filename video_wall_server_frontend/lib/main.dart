@@ -84,8 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
                             if (result != null) {
                               PlatformFile file = result.files.first;
-                              await uploadimage(
-                                  "http://127.0.0.1:5000/upload", file);
+                              await uploadimage("/upload", file);
+                              widget.bloc?.updateImages.add('');
                             }
                           },
                           child: const Text("Upload"),
@@ -109,17 +109,24 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             MaterialButton(
-              onPressed: () => {},
+              onPressed: () async {
+                var request =
+                    http.Request("GET", Uri.parse("/display/${image["id"]}"));
+                var response = await request.send();
+                widget.bloc?.updateImages.add('');
+              },
               child: const Text("Display"),
             ),
-            MaterialButton(
-              onPressed: () => {},
-              child: const Text("View"),
-            ),
+            // MaterialButton(
+            //   onPressed: () => {},
+            //   child: const Text("View"),
+            // ),
             MaterialButton(
               onPressed: () async {
-                var response = await http.delete(
-                    Uri.parse("http://localhost:5000/delete/${image["id"]}"));
+                var request =
+                    http.Request("GET", Uri.parse("/delete/${image["id"]}"));
+                var response = await request.send();
+                widget.bloc?.updateImages.add('');
               },
               child: const Text("Delete"),
             ),
