@@ -40,14 +40,20 @@ class _LoopRouteState extends State<LoopRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: FloatingActionButton.extended(
+          label: Text("Start loop",
+              style: TextStyle(
+                  decoration: (widget.selectedImages.length < 2)
+                      ? TextDecoration.lineThrough
+                      : null,
+                  fontSize: 16)),
           tooltip: (widget.selectedImages.length < 2)
               ? "Please select at least 2 images"
               : "Start loop",
           backgroundColor:
               (widget.selectedImages.length < 2) ? Colors.grey : null,
           onPressed: (widget.selectedImages.length < 2) ? null : startLoop,
-          child: const Icon(
+          icon: const Icon(
             Icons.loop,
           ),
         ),
