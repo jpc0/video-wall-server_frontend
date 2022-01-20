@@ -33,7 +33,6 @@ class _ImageListRouteState extends State<ImageListRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Theme.of(context).primaryColorLight,
         appBar: AppBar(
           title: Text(
             widget.title,
