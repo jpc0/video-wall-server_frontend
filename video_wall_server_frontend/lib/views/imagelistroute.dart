@@ -56,6 +56,7 @@ class _ImageListRouteState extends State<ImageListRoute> {
               ),
             ),
             BottomNavigationBar(
+              selectedItemColor: Theme.of(context).unselectedWidgetColor,
               onTap: (value) async {
                 if (value == 0) {
                   FilePickerResult? result =

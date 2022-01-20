@@ -13,14 +13,44 @@ class LoopRoute extends StatefulWidget {
   LoopRoute({Key? key, this.bloc}) : super(key: key);
   final selectedImages = [];
   int loopTime = 5;
+
   @override
   State<LoopRoute> createState() => _LoopRouteState();
 }
 
 class _LoopRouteState extends State<LoopRoute> {
+  void startLoop() async {
+    var ids = "";
+    for (var id in widget.selectedImages) {
+      if (widget.selectedImages.last == id) {
+        ids = '$ids${id.toString()}';
+      } else {
+        ids = '$ids${id.toString()},';
+      }
+    }
+    var response = await http.get(Uri.parse(
+        "http://backend.woordenlewe.com/display_many?ids=$ids&time=${widget.loopTime.toString()}"));
+    var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+    if (decodedResponse["message"] == "Loop initiated") {
+      Navigator.of(context).pop();
+      loopSuccess(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        floatingActionButton: FloatingActionButton(
+          tooltip: (widget.selectedImages.length < 2)
+              ? "Please select at least 2 images"
+              : "Start loop",
+          backgroundColor:
+              (widget.selectedImages.length < 2) ? Colors.grey : null,
+          onPressed: (widget.selectedImages.length < 2) ? null : startLoop,
+          child: const Icon(
+            Icons.loop,
+          ),
+        ),
         appBar: AppBar(
           title: const Text("Loop Setup"),
         ),
@@ -54,40 +84,6 @@ class _LoopRouteState extends State<LoopRoute> {
                 },
               ),
             ),
-            BottomNavigationBar(
-              onTap: (value) async {
-                if (value == 0) {
-                  if (widget.selectedImages.length < 2) {
-                    popupNoItemSelected(context);
-                  } else {
-                    var ids = "";
-                    for (var id in widget.selectedImages) {
-                      if (widget.selectedImages.last == id) {
-                        ids = '$ids${id.toString()}';
-                      } else {
-                        ids = '$ids${id.toString()},';
-                      }
-                    }
-                    var response = await http.get(Uri.parse(
-                        "http://backend.woordenlewe.com/display_many?ids=$ids&time=${widget.loopTime.toString()}"));
-                    var decodedResponse =
-                        jsonDecode(utf8.decode(response.bodyBytes)) as Map;
-                    if (decodedResponse["message"] == "Loop initiated") {
-                      Navigator.of(context).pop();
-                      loopSuccess(context);
-                    }
-                  }
-                }
-                if (value == 1) {
-                  Navigator.of(context).pop();
-                }
-              },
-              items: const [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.loop), label: "Start Loop"),
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home")
-              ],
-            )
           ],
         ));
   }
@@ -98,25 +94,6 @@ class _LoopRouteState extends State<LoopRoute> {
       builder: (BuildContext context) {
         return AlertDialog(
           content: const Text("Loop started sucessfully."),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Ok'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<dynamic> popupNoItemSelected(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: const Text("Please select at least two images"),
           actions: <Widget>[
             TextButton(
               child: const Text('Ok'),

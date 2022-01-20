@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 final appTheme = ThemeData(
-    primarySwatch: Colors.blueGrey,
+    primarySwatch: Colors.purple,
     textTheme: const TextTheme(
         headline1: TextStyle(
             fontFamily: 'Roboto',
