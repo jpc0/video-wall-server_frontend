@@ -55,36 +55,27 @@ class _ImageListRouteState extends State<ImageListRoute> {
                 },
               ),
             ),
-            Container(
-              color: Theme.of(context).primaryColor,
-              height: 80,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  MaterialButton(
-                    color: Theme.of(context).primaryColorLight,
-                    onPressed: () async {
-                      FilePickerResult? result = await FilePicker.platform
-                          .pickFiles(type: FileType.image);
-
-                      if (result != null) {
-                        PlatformFile file = result.files.first;
-                        await uploadimage(
-                            "http://backend.woordenlewe.com/upload", file);
-                        widget.bloc?.updateImages.add('');
-                      }
-                    },
-                    child: const Text("Upload"),
-                  ),
-                  MaterialButton(
-                    color: Theme.of(context).primaryColorLight,
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/loop');
-                    },
-                    child: const Text("Loop"),
-                  )
-                ],
-              ),
+            BottomNavigationBar(
+              onTap: (value) async {
+                if (value == 0) {
+                  FilePickerResult? result =
+                      await FilePicker.platform.pickFiles(type: FileType.image);
+                  if (result != null) {
+                    PlatformFile file = result.files.first;
+                    await uploadimage(
+                        "http://backend.woordenlewe.com/upload", file);
+                    widget.bloc?.updateImages.add('');
+                  }
+                }
+                if (value == 1) {
+                  Navigator.pushNamed(context, '/loop');
+                }
+              },
+              items: const [
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.upload), label: 'Upload'),
+                BottomNavigationBarItem(icon: Icon(Icons.loop), label: 'Loop'),
+              ],
             )
           ],
         ));

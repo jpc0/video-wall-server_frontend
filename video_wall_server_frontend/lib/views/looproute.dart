@@ -24,75 +24,71 @@ class _LoopRouteState extends State<LoopRoute> {
         appBar: AppBar(
           title: const Text("Loop Setup"),
         ),
-        body: StreamBuilder<UnmodifiableListView<dynamic>>(
-          stream: widget.bloc?.images,
-          initialData: UnmodifiableListView<dynamic>([]),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return Column(
-                children: [
-                  TextField(
-                    decoration: const InputDecoration(
-                        hintText: "Enter a loop time in seconds, default is 5"),
-                    onChanged: (text) {
-                      setState(() {
-                        widget.loopTime = int.parse(text);
-                      });
-                    },
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter(RegExp("^[0-9]*\$"),
-                          allow: true)
-                    ],
-                  ),
-                  Expanded(
-                    child: ListView(
+        body: Column(
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                  hintText: "Enter a loop time in seconds, default is 5"),
+              onChanged: (text) {
+                setState(() {
+                  widget.loopTime = int.parse(text);
+                });
+              },
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter(RegExp("^[0-9]*\$"), allow: true)
+              ],
+            ),
+            Expanded(
+              child: StreamBuilder<UnmodifiableListView<dynamic>>(
+                stream: widget.bloc?.images,
+                initialData: UnmodifiableListView<dynamic>([]),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return ListView(
                       children: snapshot.data!.map(_buildItem).toList(),
-                    ),
-                  ),
-                  Container(
-                    color: Theme.of(context).primaryColor,
-                    height: 80,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        MaterialButton(
-                          color: Theme.of(context).primaryColorLight,
-                          onPressed: () async {
-                            if (widget.selectedImages.length < 2) {
-                              popupNoItemSelected(context);
-                            } else {
-                              var ids = "";
-                              for (var id in widget.selectedImages) {
-                                if (widget.selectedImages.last == id) {
-                                  ids = '$ids${id.toString()}';
-                                } else {
-                                  ids = '$ids${id.toString()},';
-                                }
-                              }
-                              var response = await http.get(Uri.parse(
-                                  "http://backend.woordenlewe.com/display_many?ids=$ids&time=${widget.loopTime.toString()}"));
-                              var decodedResponse =
-                                  jsonDecode(utf8.decode(response.bodyBytes))
-                                      as Map;
-                              if (decodedResponse["message"] ==
-                                  "Loop initiated") {
-                                Navigator.of(context).pop();
-                                loopSuccess(context);
-                              }
-                            }
-                          },
-                          child: const Text("Start Loop"),
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              );
-            }
-            return const CircularProgressIndicator();
-          },
+                    );
+                  }
+                  return const CircularProgressIndicator();
+                },
+              ),
+            ),
+            BottomNavigationBar(
+              onTap: (value) async {
+                if (value == 0) {
+                  if (widget.selectedImages.length < 2) {
+                    popupNoItemSelected(context);
+                  } else {
+                    var ids = "";
+                    for (var id in widget.selectedImages) {
+                      if (widget.selectedImages.last == id) {
+                        ids = '$ids${id.toString()}';
+                      } else {
+                        ids = '$ids${id.toString()},';
+                      }
+                    }
+                    var response = await http.get(Uri.parse(
+                        "http://backend.woordenlewe.com/display_many?ids=$ids&time=${widget.loopTime.toString()}"));
+                    var decodedResponse =
+                        jsonDecode(utf8.decode(response.bodyBytes)) as Map;
+                    if (decodedResponse["message"] == "Loop initiated") {
+                      Navigator.of(context).pop();
+                      loopSuccess(context);
+                    }
+                  }
+                }
+                if (value == 1) {
+                  Navigator.of(context).pop();
+                }
+              },
+              items: const [
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.loop), label: "Start Loop"),
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home")
+              ],
+            )
+          ],
         ));
   }
 
